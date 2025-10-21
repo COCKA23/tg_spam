@@ -1,0 +1,17 @@
+# виртуальное окружение
+venv/
+.env
+
+# Python мусор
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+*.sublime-workspace
+
+# ОС
+.DS_Store
+Thumbs.db
