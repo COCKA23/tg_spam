@@ -1,56 +1,54 @@
-import pyautogui      # эмуляция клавиатуры/мыши
-import pyperclip      # буфер обмена (Ctrl+V)
-import time           
-import random         
+from pyrogram import Client, filters
+from pyrogram.types import Message
+import asyncio, random
+from config import *
 
-def generator_message(base_text):
-    """Возвращает один из 5 случайных вариантов текста."""
-    variants = [
-        f"{base_text} {random.randint(1000, 9999)}",
-        f"{base_text.upper()}",
-        f"{base_text.lower()}",
-        f"{base_text}{random.choice(['😎', '🤡', '💩', '🔥'])}",
-        f"{random.choice(['😎', '🤡', '💩', '🔥'])}"
-    ]
-    return random.choice(variants)
 
-def send_message(text):
-    """Копирует text в буфер и отправляет Ctrl+V + Enter."""
-    pyperclip.copy(text)
-    pyautogui.hotkey('ctrl', 'v')
-    pyautogui.press('enter')
-
-def spam_tg(message, amount):
-    """Цикл отправки `amount` сообщений с паузой 0.5-3 с."""
-    for i in range(1, amount + 1):
-        msg = generator_message(message)
-        send_message(msg)
-        print(f"\r💚 Отправлено: {i}/{amount}", end=' ', flush=True)
-        time.sleep(random.uniform(0.5, 3.0))
-
-def get_user_input():
-    """Запрашивает текст, кол-во и таймер. При ошибке возвращает (None,None,None)."""
-    message = input("💬 Введи текст для отправки: ")
+# Файл с гифками
+def load_gif():
     try:
-        amount      = int(input("🔢 Количество сообщений: "))
-        start_time  = int(input("⏱️ Через сколько секунд начать спам?: "))
-    except ValueError:
-        print("❌ Ошибка ввода. Введи число!")
-        return None, None, None
-    return message, amount, start_time
+        with open("gif.txt", "r") as f:
+            return [line.strip() for line in f]
+    except FileNotFoundError:
+        return [] 
 
-def main():
-    """Точка входа: собирает данные, ждёт, спамит."""
-    print("😎 Запуск спам-скрипта ... ⚡")
-    message, amount, start_time = get_user_input()
-    if message is None:
-        return
 
-    print(f"⏳ Старт через {start_time} сек...")
-    time.sleep(start_time)
+# Данные для подключения к акаунту
+app = Client(SESSION, API_ID, API_HASH)
+RUN = {}
+GIF_IDS = load_gif()
 
-    spam_tg(message, amount)
-    print("\n✅ Готово. Не забудь удалить следы.")
+print("\nСтарт успешный💚\n")
 
-if __name__ == '__main__':
-    main()
+# Авто-сбор гифок
+@app.on_message(filters.animation)
+async def collect_gif(_, msg: Message):
+    gif_id = msg.animation.file_id
+    if gif_id not in GIF_IDS:
+        GIF_IDS.append(gif_id)
+        print("[+] GIF добавлена:", gif_id)
+        
+        with open("gif.txt", "a") as f:
+            f.write(gif_id + "\n")
+
+# Спам
+@app.on_message(filters.command("spam", "/") & filters.me)
+async def start_spam(client: Client, msg: Message):
+    await msg.delete()
+    RUN[msg.chat.id] = True
+    text = msg.text.split(maxsplit=1)[1]
+
+    while RUN.get(msg.chat.id):
+        if GIF_IDS and random.random() < 0.5:
+            await client.send_animation(msg.chat.id, random.choice(GIF_IDS))
+        else:
+            await client.send_message(msg.chat.id, text)
+        await asyncio.sleep(random.uniform(0.8, 2.2))
+
+# Cтоп
+@app.on_message(filters.command("stop", "/") & filters.me)
+async def stop_spam(client: Client, msg: Message):
+    await msg.delete()
+    RUN[msg.chat.id] = False
+
+app.run()
