@@ -1,6 +1,9 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import asyncio, random
+import os
+
+
 from config import *
 
 
@@ -39,10 +42,19 @@ async def start_spam(client: Client, msg: Message):
     text = msg.text.split(maxsplit=1)[1]
 
     while RUN.get(msg.chat.id):
-        if GIF_IDS and random.random() < 0.5:
+        ch = random.random()
+
+        if GIF_IDS and ch < 0.33:
             await client.send_animation(msg.chat.id, random.choice(GIF_IDS))
+        elif ch < 0.66:
+            photos = sorted(os.listdir("photo/"))
+            
+            random_photo = random.choice(photos)
+            photo_path = os.path.join("photo/", random_photo)
+            await client.send_photo(msg.chat.id, photo_path, caption= text)
         else:
             await client.send_message(msg.chat.id, text)
+            
         await asyncio.sleep(random.uniform(0.8, 2.2))
 
 # Cтоп

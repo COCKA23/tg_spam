@@ -1,3 +1,5 @@
-API_ID = "your_api_id_here"
+# your_api_hash_here
+
+API_ID = "your_api_hash_here"
 API_HASH = "your_api_hash_here"
-SESSION = "bot"
+SESSION = "test_photo"
