@@ -15,30 +15,7 @@
 - ✅ Отпрака фоток(рандомный выбор)
 
 ## Обновление
-Самым главным новвоведение стало отправка радномных фотографий 
-```python
-    while RUN.get(msg.chat.id):
-        ch = random.random()
-
-        if GIF_IDS and ch < 0.33: #вероятнось 33%
-            await client.send_animation(msg.chat.id, random.choice(GIF_IDS))
-        elif ch < 0.66: #вероятнось 33%
-            #собирает файлы в одну переменную
-            photos = sorted(os.listdir("photo/"))
-            
-            #Выбирает андомное фото
-            random_photo = random.choice(photos)
-            #Собирает путь
-            photo_path = os.path.join("photo/", random_photo)
-            #Отправка
-            await client.send_photo(msg.chat.id, photo_path, caption= text)#Коментарий "caption= text"
-        else: #вероятнось 34%
-            await client.send_message(msg.chat.id, text)
-        
-        await asyncio.sleep(random.uniform(0.8, 2.2))
-```
-C помощью данной библиотеки мы можем начать отправлять фото а также делать коментарий.
-Мини обновление но оно полезное.
+Главное ново введиние это логтрование при старте скрипта создаёться файл с логами о работе скрипта.
 
 ## Установка
 ```bash

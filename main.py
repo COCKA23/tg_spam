@@ -2,9 +2,25 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 import asyncio, random
 import os
+import logging
 
 
 from config import *
+
+
+'''Дополнитедьные функции'''
+
+
+# Логирование
+logging.basicConfig(
+    filename= 'spam.txt',
+    level= logging.INFO,
+    encoding = 'utf-8',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+)
+
+logger = logging.getLogger(__name__)
+
 
 
 # Файл с гифками
@@ -20,6 +36,12 @@ def load_gif():
 app = Client(SESSION, API_ID, API_HASH)
 RUN = {}
 GIF_IDS = load_gif()
+
+
+
+'''Код спамера'''
+
+
 
 print("\nСтарт успешный💚\n")
 
@@ -43,19 +65,28 @@ async def start_spam(client: Client, msg: Message):
 
     while RUN.get(msg.chat.id):
         ch = random.random()
+        
+        try:
+            if GIF_IDS and ch < 0.33:
+                await client.send_animation(msg.chat.id, random.choice(GIF_IDS))
+                
+                logger.info("Успешная отправка GIF")
+            elif ch < 0.66:
+                photos = sorted(os.listdir("photo/"))
+                random_photo = random.choice(photos)
+                photo_path = os.path.join("photo/", random_photo)
+                await client.send_photo(msg.chat.id, photo_path, caption= text)
 
-        if GIF_IDS and ch < 0.33:
-            await client.send_animation(msg.chat.id, random.choice(GIF_IDS))
-        elif ch < 0.66:
-            photos = sorted(os.listdir("photo/"))
-            
-            random_photo = random.choice(photos)
-            photo_path = os.path.join("photo/", random_photo)
-            await client.send_photo(msg.chat.id, photo_path, caption= text)
-        else:
-            await client.send_message(msg.chat.id, text)
-            
-        await asyncio.sleep(random.uniform(0.8, 2.2))
+                logger.info("Успешная отправка ФОТО")
+            else:
+                await client.send_message(msg.chat.id, text)
+
+                logger.info("Успешная отправка СООБЩЕНИЯ")
+                
+            await asyncio.sleep(random.uniform(0.8, 2.2))
+
+        except Exception as e:
+           logger.error(f"Ошибка: {e}") 
 
 # Cтоп
 @app.on_message(filters.command("stop", "/") & filters.me)
