@@ -26,22 +26,29 @@ logger = logging.getLogger(__name__)
 # Файл с гифками
 def load_gif():
     try:
-        with open("gif.txt", "r") as f:
+        with open("object/gif.txt", "r") as f:
             return [line.strip() for line in f]
     except FileNotFoundError:
         return [] 
+
+# Файл с стикером
+def load_sticker():
+    try:
+        with open("object/sticker.txt", "r") as f:
+            return [line.strip() for line in f]
+    except FileNotFoundError:
+        return[]
+
+
+'''Код спамера'''
+
 
 
 # Данные для подключения к акаунту
 app = Client(SESSION, API_ID, API_HASH)
 RUN = {}
 GIF_IDS = load_gif()
-
-
-
-'''Код спамера'''
-
-
+STICKER_IDS = load_sticker()
 
 print("\nСтарт успешный💚\n")
 
@@ -53,8 +60,19 @@ async def collect_gif(_, msg: Message):
         GIF_IDS.append(gif_id)
         print("[+] GIF добавлена:", gif_id)
         
-        with open("gif.txt", "a") as f:
+        with open("object/gif.txt", "a") as f:
             f.write(gif_id + "\n")
+
+# Авто-сбор стикеров
+@app.on_message(filters.sticker)
+async def collect_sticker(_, msg: Message):
+    sticker_id = msg.sticker.file_id
+    if sticker_id not in STICKER_IDS:
+        STICKER_IDS.append(sticker_id)
+        print("[+] STICKER добавлен:", sticker_id)
+        
+        with open("object/sticker.txt", "a") as f:
+            f.write(sticker_id + "\n")
 
 # Спам
 @app.on_message(filters.command("spam", "/") & filters.me)
@@ -67,23 +85,27 @@ async def start_spam(client: Client, msg: Message):
         ch = random.random()
         
         try:
-            if GIF_IDS and ch < 0.33:
+            if GIF_IDS and ch < 0.25:
                 await client.send_animation(msg.chat.id, random.choice(GIF_IDS))
                 
                 logger.info("Успешная отправка GIF")
-            elif ch < 0.66:
+            elif ch < 0.50:
                 photos = sorted(os.listdir("photo/"))
                 random_photo = random.choice(photos)
                 photo_path = os.path.join("photo/", random_photo)
                 await client.send_photo(msg.chat.id, photo_path, caption= text)
 
                 logger.info("Успешная отправка ФОТО")
+            elif ch < 0.75:
+                await client.send_sticker(msg.chat.id, random.choice(STICKER_IDS))
+
+                logger.info("Успешная отправка STICKER")
             else:
                 await client.send_message(msg.chat.id, text)
 
                 logger.info("Успешная отправка СООБЩЕНИЯ")
                 
-            await asyncio.sleep(random.uniform(0.8, 2.2))
+            await asyncio.sleep(random.uniform(0.8, 1.3))
 
         except Exception as e:
            logger.error(f"Ошибка: {e}") 

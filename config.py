@@ -1,3 +1,3 @@
-API_ID = "your_api_id_here"
-API_HASH = "your_api_hash_here"
-SESSION = "test_photo"
+API_ID = ""
+API_HASH = ""
+SESSION = ""
