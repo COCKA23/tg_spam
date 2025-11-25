@@ -52,6 +52,37 @@ STICKER_IDS = load_sticker()
 
 print("\nСтарт успешный💚\n")
 
+# Отчистка gif.txt и sticker.txt
+@app.on_message(filters.command("clear", "/") & filters.me)
+async def claer_gs(client: Client, msg: Message):
+    await msg.delete()
+    global GIF_IDS, STICKER_IDS
+
+    if "gif" in msg.text:
+        GIF_IDS.clear()
+        open("object/gif.txt", "w").close()
+        await msg.reply("✅ GIF очищены")
+        logger.info("GIF очищены")
+
+    elif "st" in msg.text:
+        STICKER_IDS.clear()
+        open("object/sticker.txt", "w").close()
+        await msg.reply("✅ STICKER очищены")
+        logger.info("STICKER очищены")
+
+    elif "all" in msg.text:
+        GIF_IDS.clear()
+        STICKER_IDS.clear()
+        open("object/gif.txt", "w").close()
+        open("object/sticker.txt", "w").close()
+        await msg.text(" ✅ GIF и STICKER очищены")
+        logger.info("GIF и STICKER очищены ")
+
+    else:
+        await msg.reply("❌ Укажите: `/clear gif`, `/clear st` или '/clear all'")
+        logger.error("Не правилный ввод команды")
+
+
 # Авто-сбор гифок
 @app.on_message(filters.animation)
 async def collect_gif(_, msg: Message):
@@ -105,7 +136,7 @@ async def start_spam(client: Client, msg: Message):
 
                 logger.info("Успешная отправка СООБЩЕНИЯ")
                 
-            await asyncio.sleep(random.uniform(0.8, 1.3))
+            await asyncio.sleep(random.uniform(ZD_MIN, ZD_MAX))
 
         except Exception as e:
            logger.error(f"Ошибка: {e}") 
